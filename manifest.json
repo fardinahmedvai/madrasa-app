@@ -1,0 +1,21 @@
+{
+  "short_name": "মাদ্রাসা অ্যাপ",
+  "name": "রশিকনগর মোহাম্মাদিয়া মাদ্রাসা",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3000/3000431.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3000/3000431.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0d5c3a",
+  "theme_color": "#0d5c3a",
+  "display": "standalone",
+  "orientation": "portrait"
+}
