@@ -1,21 +1,21 @@
 {
   "short_name": "মাদ্রাসা অ্যাপ",
-  "name": "রশিকনগর মোহাম্মাদিয়া মাদ্রাসা",
+  "name": "মাদ্রাসা ম্যানেজমেন্ট অ্যাপ",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3000/3000431.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3602/3602145.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3000/3000431.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3602/3602145.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#0d5c3a",
-  "theme_color": "#0d5c3a",
+  "background_color": "#f4f6f8",
+  "theme_color": "#1b5e20",
   "display": "standalone",
   "orientation": "portrait"
 }
