@@ -45,8 +45,7 @@
             background: linear-gradient(135deg, #0d5c3a, #1b8a5a);
             color: white;
             padding: 16px 12px;
-            border-radius: 10px;
-            margin-bottom: 12px;
+            border-radius: 10px 10px 0 0;
         }
         .institution-header h1 {
             font-size: 18px;
@@ -57,6 +56,31 @@
         .institution-header p {
             font-size: 13px;
             opacity: 0.95;
+        }
+
+        /* Live Clock Banner */
+        .live-clock-card {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-top: none;
+            padding: 8px 12px;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #0d5c3a;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .live-clock-card .time-box {
+            font-size: 15px;
+            font-weight: bold;
+            background: #0d5c3a;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 15px;
+            letter-spacing: 0.5px;
         }
 
         /* Quick Stats Dashboard */
@@ -395,6 +419,12 @@
         <p>📍 বটতলী বাজার সংলগ্ন, দীঘিনালা, খাগড়াছড়ি পার্বত্য জেলা</p>
     </div>
 
+    <!-- Live Date and Clock Banner -->
+    <div class="live-clock-card">
+        <span><i class="fa-regular fa-calendar-days"></i> <span id="current-date-text">লোড হচ্ছে...</span></span>
+        <span class="time-box" id="current-time-text">00:00:00 AM</span>
+    </div>
+
     <!-- Quick Stats Dashboard -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -465,7 +495,37 @@
 </div>
 
 <script>
-    // --- SERVICE WORKER & NOTIFICATION INITIALIZATION ---
+    // --- LIVE CLOCK & DATE FUNCTION ---
+    function updateLiveClock() {
+        const now = new Date();
+        
+        // Bengali Number Converter Helper
+        const toBengaliNumerals = (str) => {
+            const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return str.replace(/[0-9]/g, digit => bengaliDigits[digit]);
+        };
+
+        // Format Date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('bn-BD', dateOptions);
+        
+        // Format Time
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // hour '0' should be '12'
+        const formattedTime = `${toBengaliNumerals(String(hours).padStart(2, '0'))}:${toBengaliNumerals(minutes)}:${toBengaliNumerals(seconds)} ${ampm}`;
+
+        document.getElementById('current-date-text').innerText = formattedDate;
+        document.getElementById('current-time-text').innerText = formattedTime;
+    }
+
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    // --- SERVICE WORKER INITIALIZATION ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
@@ -473,24 +533,6 @@
                 .catch(err => console.log('Service Worker Reg Failed', err));
         });
     }
-
-    function requestNotification() {
-        if ('Notification' in window) {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted' && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(reg => {
-                        reg.showNotification('রশিকনগর মাদ্রাসা অ্যাপ', {
-                            body: 'নোটিফিকেশন সফলভাবে যুক্ত করা হয়েছে!',
-                            icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602145.png'
-                        });
-                    });
-                }
-            });
-        }
-    }
-
-    // Auto request notification on first click/interaction
-    window.addEventListener('click', () => { requestNotification(); }, { once: true });
 
     // --- FIREBASE INITIALIZATION ---
     const firebaseConfig = {
