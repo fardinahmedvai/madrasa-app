@@ -345,16 +345,6 @@
             gap: 6px;
             align-items: center;
         }
-        .edit-item-btn {
-            background: #ffc107;
-            color: #000;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-        }
         .delete-item-btn {
             background: #dc3545;
             color: #fff;
@@ -365,53 +355,6 @@
             font-size: 12px;
             font-weight: bold;
         }
-
-        /* Custom Edit Modal Styling */
-        .edit-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .edit-modal-box {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .edit-modal-box h3 {
-            margin-bottom: 12px;
-            font-size: 16px;
-            color: #0d5c3a;
-        }
-        .edit-modal-box input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        .edit-modal-btns {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-        }
-        .edit-modal-btns button {
-            flex: 1;
-            padding: 9px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .save-edit-btn { background: #28a745; color: white; }
-        .cancel-edit-btn { background: #dc3545; color: white; }
 
         @media print {
             body * {
@@ -534,7 +477,7 @@
                     <option value="class2">২য় শ্রেণি</option>
                     <option value="class3">৩য় শ্রেণি</option>
                 </select>
-                <select id="resInputStudent">
+                <select id="resInputStudent" onchange="checkExistingResultForAdmin()">
                     <option value="">শিক্ষার্থী নির্বাচন করুন...</option>
                 </select>
                 
@@ -547,21 +490,11 @@
                 </div>
                 <button onclick="addSubjectRow()" style="background:#6c757d; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; align-self:flex-start;">+ বিষয় যোগ করুন</button>
                 
-                <button onclick="saveStudentResult()" style="background:#e65100; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-top:10px;">রেজাল্ট সেভ করুন</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="saveStudentResult()" style="flex: 2; background:#e65100; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;">রেজাল্ট সেভ করুন</button>
+                    <button id="admin-delete-res-btn" onclick="deleteResultFromAdminPanel()" style="flex: 1; background:#dc3545; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; display:none;"><i class="fa-solid fa-trash"></i> রেজাল্ট মুছুন</button>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Custom Edit Modal HTML -->
-<div id="customEditModal" class="edit-modal-overlay" style="display:none;">
-    <div class="edit-modal-box">
-        <h3>তথ্য সংশোধন (Rename & Edit)</h3>
-        <input type="text" id="editModalName" placeholder="নাম লিখুন...">
-        <input type="tel" id="editModalPhone" placeholder="মোবাইল নম্বর লিখুন...">
-        <div class="edit-modal-btns">
-            <button class="save-edit-btn" onclick="saveEditedData()">সংরক্ষণ করুন</button>
-            <button class="cancel-edit-btn" onclick="closeEditModal()">বাতিল</button>
         </div>
     </div>
 </div>
@@ -570,7 +503,6 @@
     const TEACHER_PIN = "987321";
     const ADMIN_PIN   = "577147";
     let currentRole = sessionStorage.getItem('user_role_state') || 'guest';
-    let editingId = null;
 
     const classNameMap = {
         'nursery': 'নার্সারি',
@@ -755,7 +687,6 @@
             if (currentRole !== 'guest') {
                 adminControls = `
                     <div class="action-btns-group">
-                        <button class="edit-item-btn" onclick="editEntry('${item.id}')" title="রিনেম করুন"><i class="fa-solid fa-pen"></i></button>
                         <button class="delete-item-btn" onclick="deleteEntry('${item.id}')" title="ডিলিট করুন"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
@@ -803,52 +734,6 @@
         }
     }
 
-    // Custom Modal Edit Handlers
-    function editEntry(id) {
-        if (currentRole === 'guest') {
-            alert("প্রথমে অ্যাডমিন বা শিক্ষক হিসেবে লগইন করুন!");
-            return;
-        }
-        let list = schoolData[currentClass] || [];
-        let item = list.find(i => i.id === id);
-        if (!item) return;
-
-        editingId = id;
-        document.getElementById('editModalName').value = item.name;
-        document.getElementById('editModalPhone').value = item.phone || '';
-        document.getElementById('customEditModal').style.display = 'flex';
-    }
-
-    function closeEditModal() {
-        editingId = null;
-        document.getElementById('customEditModal').style.display = 'none';
-    }
-
-    function saveEditedData() {
-        if (!editingId) return;
-
-        let newName = document.getElementById('editModalName').value.trim();
-        let newPhone = document.getElementById('editModalPhone').value.trim();
-
-        if (!newName) {
-            alert("নাম খালি রাখা যাবে না!");
-            return;
-        }
-
-        let list = schoolData[currentClass] || [];
-        let item = list.find(i => i.id === editingId);
-        
-        if (item) {
-            item.name = newName;
-            item.phone = newPhone;
-            saveData();
-            applyFilters();
-            alert("সফলভাবে আপডেট করা হয়েছে!");
-        }
-
-        closeEditModal();
-    }
-
     // --- RESULT MANAGEMENT FUNCTIONS ---
     function loadStudentsForResult() {
         const cls = document.getElementById('resInputClass').value;
@@ -859,6 +744,17 @@
         students.forEach(std => {
             stdSelect.innerHTML += `<option value="${std.id}">রোল: ${std.roll} - ${std.name}</option>`;
         });
+        checkExistingResultForAdmin();
+    }
+
+    function checkExistingResultForAdmin() {
+        const stdId = document.getElementById('resInputStudent').value;
+        const deleteBtn = document.getElementById('admin-delete-res-btn');
+        if (schoolData.results && schoolData.results[stdId]) {
+            deleteBtn.style.display = "block";
+        } else {
+            deleteBtn.style.display = "none";
+        }
     }
 
     function addSubjectRow() {
@@ -899,7 +795,23 @@
         schoolData.results[stdId] = { subjects, total, class: cls };
 
         saveData();
+        checkExistingResultForAdmin();
         alert("ফলাফল সফলভাবে সংরক্ষণ করা হয়েছে!");
+    }
+
+    function deleteResultFromAdminPanel() {
+        const stdId = document.getElementById('resInputStudent').value;
+        if(!stdId) return alert("শিক্ষার্থী নির্বাচন করুন!");
+
+        if(confirm("আপনি কি নিশ্চিতভাবে এই শিক্ষার্থীর সংরক্ষিত ফলাফল মুছে ফেলতে চান?")) {
+            if(schoolData.results && schoolData.results[stdId]) {
+                delete schoolData.results[stdId];
+                saveData();
+                checkExistingResultForAdmin();
+                alert("ফলাফল সফলভাবে মুছে ফেলা হয়েছে!");
+                document.getElementById('result-display-area').innerHTML = '';
+            }
+        }
     }
 
     function deleteStudentResult(stdId, stdName) {
@@ -909,6 +821,7 @@
             if(schoolData.results && schoolData.results[stdId]) {
                 delete schoolData.results[stdId];
                 saveData();
+                checkExistingResultForAdmin();
                 alert("ফলাফল সফলভাবে মুছে ফেলা হয়েছে!");
                 document.getElementById('result-display-area').innerHTML = '';
             }
@@ -989,4 +902,4 @@
 </script>
 
 </body>
-</html>
+    </html>
