@@ -123,6 +123,7 @@
             display: none;
             align-items: center;
             gap: 4px;
+            white-space: nowrap;
         }
 
         /* Live Clock Banner */
@@ -332,13 +333,15 @@
             gap: 10px;
         }
         .contact-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             background: #ffffff;
             border: 1px solid #e5e5e5;
             border-radius: 10px;
             padding: 12px;
+        }
+        .card-main-view {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .roll-badge {
             background: #e7f1ff;
@@ -367,16 +370,59 @@
         }
         .mini-btn {
             border: none;
-            padding: 5px 8px;
+            padding: 6px 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             color: white;
             display: none;
         }
-        .edit-item-btn { background: #ffc107; color: #000; }
+        .edit-item-btn { background: #ffc107; color: #000 !important; }
         .delete-item-btn { background: #dc3545; }
+
+        /* Inline Edit Box Styling */
+        .edit-form-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #fdfdfd;
+            border: 1px dashed #007bff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .edit-form-box input {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .edit-form-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .save-edit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            flex: 1;
+        }
+        .cancel-edit-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            flex: 1;
+        }
 
         @media print {
             body * {
@@ -428,19 +474,19 @@
 
     <!-- Navigation Tabs -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('directory')">📁 ডিরেক্টরি</button>
-        <button class="tab-btn result-tab" onclick="switchTab('result')">📊 পরীক্ষার ফলাফল</button>
+        <button class="tab-btn active" onclick="switchTab('directory', event)">📁 ডিরেক্টরি</button>
+        <button class="tab-btn result-tab" onclick="switchTab('result', event)">📊 পরীক্ষার ফলাফল</button>
     </div>
 
     <!-- SECTION 1: DIRECTORY SECTION -->
     <div id="directory-section">
         <!-- Class & Teacher Sub Tabs -->
         <div class="tabs">
-            <button class="tab-btn active class-sub-btn" onclick="switchClass('nursery')">নার্সারি</button>
-            <button class="tab-btn class-sub-btn" onclick="switchClass('class1')">১ম শ্রেণি</button>
-            <button class="tab-btn class-sub-btn" onclick="switchClass('class2')">২য় শ্রেণি</button>
-            <button class="tab-btn class-sub-btn" onclick="switchClass('class3')">৩য় শ্রেণি</button>
-            <button class="tab-btn teacher-tab class-sub-btn" onclick="switchClass('teachers')">👨‍🏫 শিক্ষকবৃন্দ</button>
+            <button class="tab-btn active class-sub-btn" onclick="switchClass('nursery', event)">নার্সারি</button>
+            <button class="tab-btn class-sub-btn" onclick="switchClass('class1', event)">১ম শ্রেণি</button>
+            <button class="tab-btn class-sub-btn" onclick="switchClass('class2', event)">২য় শ্রেণি</button>
+            <button class="tab-btn class-sub-btn" onclick="switchClass('class3', event)">৩য় শ্রেণি</button>
+            <button class="tab-btn teacher-tab class-sub-btn" onclick="switchClass('teachers', event)">👨‍🏫 শিক্ষকবৃন্দ</button>
         </div>
 
         <!-- Search & Tools Toolbar -->
@@ -524,7 +570,6 @@
 </div>
 
 <script>
-    // Default Passwords (Managed in DB)
     let currentRole = sessionStorage.getItem('user_role_state') || 'guest';
 
     const classNameMap = {
@@ -566,7 +611,7 @@
     const db = firebase.firestore();
 
     let currentClass = 'nursery';
-    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v21')) || {
+    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v22')) || {
         notice: "আগামীকাল মাদরাসা খোলা থাকবে।",
         adminPin: "577147",
         teacherPin: "987321",
@@ -583,7 +628,7 @@
             if(!schoolData.adminPin) schoolData.adminPin = "577147";
             if(!schoolData.teacherPin) schoolData.teacherPin = "987321";
 
-            localStorage.setItem('schoolDirectoryData_v21', JSON.stringify(schoolData));
+            localStorage.setItem('schoolDirectoryData_v22', JSON.stringify(schoolData));
             document.getElementById('live-notice-text').innerText = schoolData.notice || "নোটিশ নেই।";
             applyFilters();
             loadStudentsForResult();
@@ -593,11 +638,11 @@
     });
 
     function saveData() {
-        localStorage.setItem('schoolDirectoryData_v21', JSON.stringify(schoolData));
+        localStorage.setItem('schoolDirectoryData_v22', JSON.stringify(schoolData));
         db.collection('school').doc('madrasaData').set(schoolData);
     }
 
-    // Secure Role Management with Admin Approval
+    // Role Management
     function openLoginPrompt() {
         const pin = prompt("শিক্ষক বা অ্যাডমিন পিন দিন:");
         if (!pin) return;
@@ -609,22 +654,11 @@
             updateRoleUI();
             applyFilters();
         } else if (pin === schoolData.teacherPin) {
-            // Admin Approval Mechanism for Teacher Login
-            let approval = confirm("শিক্ষক পিন সঠিক হয়েছে। পোর্টালের ভেতরে প্রবেশের জন্য সুপার অ্যাডমিনের অনুমোদন বা এপ্রুভাল প্রয়োজন। সুপার অ্যাডমিন কি অনুমোদন দিচ্ছেন?");
-            if (approval) {
-                let adminVerifyPin = prompt("নিশ্চিতকরণের জন্য সুপার অ্যাডমিনের পিন দিন:");
-                if (adminVerifyPin === schoolData.adminPin) {
-                    currentRole = 'teacher';
-                    sessionStorage.setItem('user_role_state', 'teacher');
-                    alert("শিক্ষক লগইন সফলভাবে অনুমোদিত হয়েছে!");
-                    updateRoleUI();
-                    applyFilters();
-                } else {
-                    alert("ভুল সুপার অ্যাডমিন পিন! এপ্রুভাল বাতিল করা হলো।");
-                }
-            } else {
-                alert("অ্যাডমিন এপ্রুভাল না দেওয়ায় লগইন করা সম্ভব হয়নি।");
-            }
+            currentRole = 'teacher';
+            sessionStorage.setItem('user_role_state', 'teacher');
+            alert("শিক্ষক হিসেবে সফলভাবে লগইন হয়েছে!");
+            updateRoleUI();
+            applyFilters();
         } else {
             alert("ভুল পিন!");
         }
@@ -656,7 +690,7 @@
             printBtn.style.display = "block";
             noticeEditBtn.style.display = "flex";
             adminRes.style.display = (currentRole === 'admin') ? "block" : "none";
-            settingsBtn.style.display = (currentRole === 'admin') ? "block" : "none"; // Only Super Admin can access settings
+            settingsBtn.style.display = (currentRole === 'admin') ? "block" : "none";
         } else {
             roleLabel.innerText = "অভিভাবক মোড";
             loginBtn.style.display = "inline-block";
@@ -670,18 +704,20 @@
     }
 
     // Switch Main Tabs
-    function switchTab(tab) {
+    function switchTab(tab, eventObj) {
         document.getElementById('directory-section').style.display = (tab === 'directory') ? 'block' : 'none';
         document.getElementById('result-section').style.display = (tab === 'result') ? 'block' : 'none';
-        document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.remove('active'));
-        if(event && event.target) event.target.classList.add('active');
+        
+        const primaryTabs = document.querySelectorAll('.container > .tabs .tab-btn');
+        primaryTabs.forEach(b => b.classList.remove('active'));
+        if(eventObj && eventObj.target) eventObj.target.classList.add('active');
         if(tab === 'result') loadStudentsForResult();
     }
 
-    function switchClass(cls) {
+    function switchClass(cls, eventObj) {
         currentClass = cls;
         document.querySelectorAll('.class-sub-btn').forEach(btn => btn.classList.remove('active'));
-        if(event && event.target) event.target.classList.add('active');
+        if(eventObj && eventObj.target) eventObj.target.classList.add('active');
         
         document.getElementById('current-class-label').innerText = classNameMap[cls];
         if(cls === 'teachers') {
@@ -721,6 +757,7 @@
         list.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'contact-card';
+            card.id = `card-${item.id}`;
             
             const rollDisplay = item.roll || (index + 1);
             const rollLabel = isTeacherTab ? 'আইডি' : 'রোল';
@@ -739,15 +776,28 @@
             const showEditDelete = (currentRole !== 'guest') ? 'inline-block' : 'none';
 
             card.innerHTML = `
-                <div>
-                    <span class="roll-badge">${rollLabel} ${rollDisplay}</span>
-                    <strong style="margin-left:5px; font-size:15px;">${item.name}</strong>
-                    <div style="font-size:13px; color:#666; margin-top:4px;">${phoneDisplay}</div>
+                <div class="card-main-view" id="view-${item.id}">
+                    <div>
+                        <span class="roll-badge">${rollLabel} ${rollDisplay}</span>
+                        <strong style="margin-left:5px; font-size:15px;">${item.name}</strong>
+                        <div style="font-size:13px; color:#666; margin-top:4px;">${phoneDisplay}</div>
+                    </div>
+                    <div class="card-actions">
+                        ${callBtn}
+                        <button class="mini-btn edit-item-btn" style="display: ${showEditDelete};" onclick="toggleEditMode('${item.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="mini-btn delete-item-btn" style="display: ${showEditDelete};" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </div>
-                <div class="card-actions">
-                    ${callBtn}
-                    <button class="mini-btn edit-item-btn" style="display: ${showEditDelete};" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="mini-btn delete-item-btn" style="display: ${showEditDelete};" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+
+                <div class="edit-form-box" id="edit-box-${item.id}" style="display:none;">
+                    <div style="font-size:12px; font-weight:bold; color:#007bff; margin-bottom:4px;">তথ্য সংশোধন করুন:</div>
+                    <input type="number" id="edit-roll-${item.id}" value="${item.roll || ''}" placeholder="রোল/আইডি">
+                    <input type="text" id="edit-name-${item.id}" value="${item.name}" placeholder="নাম">
+                    <input type="tel" id="edit-phone-${item.id}" value="${item.phone || ''}" placeholder="মোবাইল নম্বর">
+                    <div class="edit-form-actions">
+                        <button class="save-edit-btn" onclick="saveEditedEntry('${item.id}')"><i class="fa-solid fa-check"></i> সেভ করুন</button>
+                        <button class="cancel-edit-btn" onclick="toggleEditMode('${item.id}')">বাতিল</button>
+                    </div>
                 </div>
             `;
             container.appendChild(card);
@@ -770,37 +820,52 @@
         document.getElementById('phoneNum').value = '';
     }
 
-    // Edit & Rename Feature
-    function editEntry(id) {
+    // Inline Edit Toggler
+    function toggleEditMode(id) {
+        const viewDiv = document.getElementById(`view-${id}`);
+        const editDiv = document.getElementById(`edit-box-${id}`);
+        
+        if (editDiv.style.display === 'none') {
+            viewDiv.style.display = 'none';
+            editDiv.style.display = 'flex';
+        } else {
+            viewDiv.style.display = 'flex';
+            editDiv.style.display = 'none';
+        }
+    }
+
+    // Save Edited Data
+    function saveEditedEntry(id) {
+        if (currentRole === 'guest') return;
         let list = schoolData[currentClass];
-        let item = list.find(i => i.id === id);
-        if(!item) return;
+        let item = list.find(i => String(i.id) === String(id));
+        if(!item) return alert("তথ্য পাওয়া যায়নি!");
 
-        let newName = prompt("নতুন নাম লিখুন:", item.name);
-        if(newName === null) return;
-        let newRoll = prompt("নতুন রোল/আইডি লিখুন:", item.roll);
-        if(newRoll === null) return;
-        let newPhone = prompt("নতুন মোবাইল নম্বর লিখুন:", item.phone || "");
-        if(newPhone === null) return;
+        let newRoll = document.getElementById(`edit-roll-${id}`).value.trim();
+        let newName = document.getElementById(`edit-name-${id}`).value.trim();
+        let newPhone = document.getElementById(`edit-phone-${id}`).value.trim();
 
-        item.name = newName.trim() || item.name;
-        item.roll = newRoll.trim() ? parseInt(newRoll) : item.roll;
-        item.phone = newPhone.trim();
+        if(!newName) return alert("নাম খালি রাখা যাবে না!");
+
+        item.roll = newRoll ? parseInt(newRoll) : item.roll;
+        item.name = newName;
+        item.phone = newPhone;
 
         saveData();
-        alert("সফলভাবে তথ্য আপডেট বা রিনেম করা হয়েছে!");
+        applyFilters();
+        alert("সফলভাবে তথ্য আপডেট করা হয়েছে!");
     }
 
     function deleteEntry(id) {
         if(currentRole === 'guest') return;
         if(confirm("আপনি কি এই এন্ট্রিটি মুছে ফেলতে চান?")) {
-            schoolData[currentClass] = schoolData[currentClass].filter(i => i.id !== id);
+            schoolData[currentClass] = schoolData[currentClass].filter(i => String(i.id) !== String(id));
             saveData();
+            applyFilters();
             alert("সফলভাবে মুছে ফেলা হয়েছে!");
         }
     }
 
-    // Live Notice Update Feature
     function updateNotice() {
         if(currentRole === 'guest') return;
         let newNotice = prompt("নতুন নোটিশ লিখুন:", schoolData.notice);
@@ -811,7 +876,6 @@
         }
     }
 
-    // Super Admin Settings Modal (Password Management)
     function openSettingsModal() {
         if(currentRole !== 'admin') return alert("শুধুমাত্র সুপার অ্যাডমিন সেটিংস পরিবর্তন করতে পারবেন!");
         
@@ -837,7 +901,6 @@
         }
     }
 
-    // Print Current Class List Feature
     function printCurrentList() {
         let list = schoolData[currentClass] || [];
         let title = classNameMap[currentClass];
@@ -949,14 +1012,12 @@
             return;
         }
 
-        // Calculate Rank
         let allResInClass = students.map(s => {
             return { id: s.id, total: (schoolData.results && schoolData.results[s.id]) ? schoolData.results[s.id].total : 0 };
         }).sort((a,b) => b.total - a.total);
 
         let rank = allResInClass.findIndex(r => r.id === foundStudent.id) + 1;
 
-        // Render Marksheet
         let rowsHtml = '';
         resData.subjects.forEach(sub => {
             rowsHtml += `<tr><td>${sub.subject}</td><td>${sub.mark}</td></tr>`;
@@ -1003,4 +1064,4 @@
 </script>
 
 </body>
-</html>
+    </html>
