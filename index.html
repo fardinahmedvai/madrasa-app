@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</title>
+    <title>রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</title>
     
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
@@ -209,9 +209,9 @@
             background: #28a745;
         }
 
-        /* Filter Bar */
+        /* Filter Bar (Only for Teacher/Admin) */
         .filter-bar {
-            display: flex;
+            display: none;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
@@ -431,6 +431,11 @@
             color: #888;
             font-style: italic;
         }
+        .visible-teacher-phone {
+            font-size: 15px;
+            font-weight: bold;
+            color: #0d5c3a;
+        }
         .save-mini-btn {
             background: #17a2b8;
             color: white;
@@ -496,7 +501,7 @@
 
     <!-- Header with Institution Details -->
     <div class="institution-header">
-        <h1>🕌 রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</h1>
+        <h1>🕌 রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</h1>
         <p>📍 বটতলী বাজার সংলগ্ন, দীঘিনালা, খাগড়াছড়ি পার্বত্য জেলা</p>
     </div>
 
@@ -538,8 +543,8 @@
         <button class="tab-btn teacher-tab" onclick="switchClass('teachers')">👨‍🏫 শিক্ষকবৃন্দ</button>
     </div>
 
-    <!-- Quick Filter Bar & Print -->
-    <div class="filter-bar">
+    <!-- Quick Filter Bar & Print (শুধুমাত্র শিক্ষক/অ্যাডমিনদের জন্য) -->
+    <div class="filter-bar" id="filter-bar-sec">
         <div class="filter-btn-group">
             <button class="filter-btn filter-btn-all active" id="filter-all-btn" onclick="setPhoneFilter('all')">
                 <i class="fa-solid fa-list"></i> সবাই
@@ -699,6 +704,7 @@
         const formGroup = document.getElementById('form-group-sec');
         const groupSmsBtn = document.getElementById('group-sms-btn');
         const noticeEditBtn = document.getElementById('notice-edit-btn');
+        const filterBar = document.getElementById('filter-bar-sec');
 
         if (currentRole === 'admin') {
             roleLabel.innerText = "অ্যাডমিন / মুহতামিম মোড";
@@ -708,6 +714,7 @@
             formGroup.style.display = "flex";
             groupSmsBtn.style.display = "flex";
             noticeEditBtn.style.display = "flex";
+            filterBar.style.display = "flex";
         } else if (currentRole === 'teacher') {
             roleLabel.innerText = "শিক্ষক মোড";
             roleLabel.style.background = "#27ae60";
@@ -716,6 +723,7 @@
             formGroup.style.display = "flex";
             groupSmsBtn.style.display = "flex";
             noticeEditBtn.style.display = "none";
+            filterBar.style.display = "flex";
         } else {
             roleLabel.innerText = "অভিভাবক / সাধারণ মোড";
             roleLabel.style.background = "#7f8c8d";
@@ -724,6 +732,7 @@
             formGroup.style.display = "none";
             groupSmsBtn.style.display = "none";
             noticeEditBtn.style.display = "none";
+            filterBar.style.display = "none";
         }
     }
 
@@ -788,14 +797,14 @@
         const noPhoneCount = list.filter(item => !item.phone || item.phone.trim() === '').length;
         document.getElementById('no-phone-count').innerText = noPhoneCount;
 
-        if (currentPhoneFilter === 'no-phone') {
+        if (currentRole !== 'guest' && currentPhoneFilter === 'no-phone') {
             list = list.filter(item => !item.phone || item.phone.trim() === '');
         }
 
         if (query) {
             list = list.filter(item => {
                 const nameMatch = item.name.toLowerCase().includes(query);
-                const phoneMatch = (currentRole !== 'guest' && item.phone) ? item.phone.includes(query) : false;
+                const phoneMatch = (item.phone) ? item.phone.includes(query) : false;
                 const rollMatch = item.roll ? item.roll.toString().includes(query) : false;
                 return nameMatch || phoneMatch || rollMatch;
             });
@@ -881,7 +890,7 @@
             return;
         }
 
-        const defaultMsg = `রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা (${classNameMap[currentClass]}) এর জরুরি বিজ্ঞপ্তি: `;
+        const defaultMsg = `রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা (${classNameMap[currentClass]}) এর জরুরি বিজ্ঞপ্তি: `;
         window.location.href = `sms:${phoneNumbers}?body=${encodeURIComponent(defaultMsg)}`;
     }
 
@@ -936,9 +945,21 @@
             let phoneBoxHtml = '';
             let callBtnHtml = '';
 
+            const isTeacherTab = (currentClass === 'teachers');
+
             if (currentRole === 'guest') {
-                phoneBoxHtml = `<span class="masked-phone"><i class="fa-solid fa-lock"></i> নম্বর সুরক্ষিত</span>`;
-                callBtnHtml = `<a class="call-btn disabled"><i class="fa-solid fa-phone"></i> সুরক্ষিত</a>`;
+                if (isTeacherTab) {
+                    phoneBoxHtml = item.phone 
+                        ? `<span class="visible-teacher-phone"><i class="fa-solid fa-phone"></i> ${item.phone}</span>`
+                        : `<span class="masked-phone">নম্বর নেই</span>`;
+
+                    callBtnHtml = item.phone 
+                        ? `<a href="tel:${item.phone}" class="call-btn"><i class="fa-solid fa-phone"></i> কল করুন</a>`
+                        : `<a class="call-btn disabled"><i class="fa-solid fa-phone"></i> নেই</a>`;
+                } else {
+                    phoneBoxHtml = `<span class="masked-phone"><i class="fa-solid fa-lock"></i> নম্বর সুরক্ষিত</span>`;
+                    callBtnHtml = `<a class="call-btn disabled"><i class="fa-solid fa-phone"></i> সুরক্ষিত</a>`;
+                }
             } else {
                 phoneBoxHtml = `
                     <input type="tel" id="phone-${item.id}" class="phone-input" value="${item.phone || ''}" placeholder="নম্বর লিখুন">
