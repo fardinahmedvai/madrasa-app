@@ -279,6 +279,18 @@
             width: 100%;
             margin-top: 10px;
         }
+        .delete-res-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 8px;
+            display: none;
+        }
 
         /* Admin Result Entry Form */
         .subject-row {
@@ -342,7 +354,7 @@
                 top: 0;
                 width: 100%;
             }
-            .print-mark-btn {
+            .print-mark-btn, .delete-res-btn {
                 display: none !important;
             }
         }
@@ -735,6 +747,19 @@
         alert("ফলাফল সফলভাবে সংরক্ষণ করা হয়েছে!");
     }
 
+    function deleteStudentResult(stdId, stdName) {
+        if(currentRole !== 'admin') return alert("শুধুমাত্র অ্যাডমিন রেজাল্ট ডিলিট করতে পারবেন!");
+        
+        if(confirm(`আপনি কি "${stdName}" এর এই ফলাফলটি মুছে ফেলতে চান?`)) {
+            if(schoolData.results && schoolData.results[stdId]) {
+                delete schoolData.results[stdId];
+                saveData();
+                alert("ফলাফল সফলভাবে মুছে ফেলা হয়েছে!");
+                document.getElementById('result-display-area').innerHTML = '';
+            }
+        }
+    }
+
     function searchResult() {
         const cls = document.getElementById('resSearchClass').value;
         const query = document.getElementById('resSearchQuery').value.toLowerCase().trim();
@@ -770,6 +795,8 @@
             rowsHtml += `<tr><td>${sub.subject}</td><td>${sub.mark}</td></tr>`;
         });
 
+        const showDeleteBtn = (currentRole === 'admin') ? `block` : `none`;
+
         display.innerHTML = `
             <div class="marksheet-box" id="printable-marksheet">
                 <div class="marksheet-header">
@@ -799,6 +826,7 @@
                     </tbody>
                 </table>
                 <button class="print-mark-btn" onclick="window.print()"><i class="fa-solid fa-download"></i> রেজাল্ট ডাউনলোড / প্রিন্ট করুন</button>
+                <button class="delete-res-btn" style="display: ${showDeleteBtn};" onclick="deleteStudentResult('${foundStudent.id}', '${foundStudent.name}')"><i class="fa-solid fa-trash"></i> এই রেজাল্ট মুছে ফেলুন</button>
             </div>
         `;
     }
