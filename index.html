@@ -58,36 +58,6 @@
             opacity: 0.95;
         }
 
-        /* Notice Board Styling */
-        .notice-banner {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 10px 12px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        .notice-text {
-            flex: 1;
-            font-weight: 600;
-        }
-        .notice-edit-btn {
-            background: #856404;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
         /* Live Clock Banner */
         .live-clock-card {
             background: #e8f5e9;
@@ -171,25 +141,18 @@
             background: #28a745;
         }
 
-        /* Filter & Export Bar */
+        /* Quick Filter Bar (No Phone Filter) */
         .filter-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 8px;
             margin-bottom: 12px;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .filter-btn-group {
-            display: flex;
-            gap: 6px;
         }
         .filter-btn {
             padding: 6px 12px;
             border: 1px solid #ccc;
             background: #f8f9fa;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             color: #555;
@@ -207,16 +170,6 @@
             background: #007bff;
             color: white;
             border-color: #007bff;
-        }
-        .print-btn {
-            background: #17a2b8;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
         }
 
         /* Search Bar Area */
@@ -383,6 +336,10 @@
             align-items: center;
             justify-content: center;
         }
+        .rename-btn:hover {
+            background-color: #28a745;
+            color: #ffffff;
+        }
 
         .phone-action-box {
             display: flex;
@@ -442,21 +399,14 @@
             border-radius: 50%;
             transition: 0.2s;
         }
+        .delete-btn:hover {
+            background-color: #ffe6e6;
+        }
         .empty-msg {
             text-align: center;
             color: #888;
             padding: 20px 0;
             font-size: 15px;
-        }
-
-        /* Print Media Style */
-        @media print {
-            .tabs, .filter-bar, .search-box, .group-sms-btn, .form-group, .rename-btn, .save-mini-btn, .delete-btn, .notice-edit-btn {
-                display: none !important;
-            }
-            .phone-input {
-                border: none;
-            }
         }
     </style>
 </head>
@@ -467,13 +417,6 @@
     <div class="institution-header">
         <h1>🕌 রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</h1>
         <p>📍 বটতলী বাজার সংলগ্ন, দীঘিনালা, খাগড়াছড়ি পার্বত্য জেলা</p>
-    </div>
-
-    <!-- Live Notice Banner -->
-    <div class="notice-banner">
-        <i class="fa-solid fa-bullhorn"></i>
-        <div class="notice-text" id="live-notice-text">জরুরি নোটিশ: এখানে নোটিশ দেখা যাবে।</div>
-        <button class="notice-edit-btn" onclick="updateNotice()"><i class="fa-solid fa-lock"></i> এডিট (অ্যাডমিন)</button>
     </div>
 
     <!-- Live Date and Clock Banner -->
@@ -507,17 +450,14 @@
         <button class="tab-btn teacher-tab" onclick="switchClass('teachers')">👨‍🏫 শিক্ষকবৃন্দ</button>
     </div>
 
-    <!-- Quick Filter Bar & Print -->
+    <!-- Quick Filter Bar -->
     <div class="filter-bar">
-        <div class="filter-btn-group">
-            <button class="filter-btn filter-btn-all active" id="filter-all-btn" onclick="setPhoneFilter('all')">
-                <i class="fa-solid fa-list"></i> সবাই
-            </button>
-            <button class="filter-btn" id="filter-nophone-btn" onclick="setPhoneFilter('no-phone')">
-                <i class="fa-solid fa-phone-slash"></i> নম্বর ছাড়া (<span id="no-phone-count">০</span>)
-            </button>
-        </div>
-        <button class="print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> প্রিন্ট করুন</button>
+        <button class="filter-btn filter-btn-all active" id="filter-all-btn" onclick="setPhoneFilter('all')">
+            <i class="fa-solid fa-list"></i> সবাই
+        </button>
+        <button class="filter-btn" id="filter-nophone-btn" onclick="setPhoneFilter('no-phone')">
+            <i class="fa-solid fa-phone-slash"></i> নম্বর ছাড়া (<span id="no-phone-count">০</span>)
+        </button>
     </div>
 
     <!-- Search Input Bar -->
@@ -555,26 +495,27 @@
 </div>
 
 <script>
-    // --- ADMIN PASSWORD CONFIGURATION ---
-    const ADMIN_PASSWORD = "577147"; // 🔑 আপনার সেট করা সিক্রেট পাসওয়ার্ড
-
     // --- LIVE CLOCK & DATE FUNCTION ---
     function updateLiveClock() {
         const now = new Date();
+        
+        // Bengali Number Converter Helper
         const toBengaliNumerals = (str) => {
             const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
             return str.replace(/[0-9]/g, digit => bengaliDigits[digit]);
         };
 
+        // Format Date
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const formattedDate = now.toLocaleDateString('bn-BD', dateOptions);
         
+        // Format Time
         let hours = now.getHours();
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
-        hours = hours ? hours : 12;
+        hours = hours ? hours : 12; // hour '0' should be '12'
         const formattedTime = `${toBengaliNumerals(String(hours).padStart(2, '0'))}:${toBengaliNumerals(minutes)}:${toBengaliNumerals(seconds)} ${ampm}`;
 
         document.getElementById('current-date-text').innerText = formattedDate;
@@ -583,6 +524,15 @@
 
     setInterval(updateLiveClock, 1000);
     updateLiveClock();
+
+    // --- SERVICE WORKER INITIALIZATION ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Active'))
+                .catch(err => console.log('Service Worker Reg Failed', err));
+        });
+    }
 
     // --- FIREBASE INITIALIZATION ---
     const firebaseConfig = {
@@ -609,54 +559,80 @@
         'teachers': 'শিক্ষকমণ্ডলী'
     };
 
-    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v17')) || {
-        notice: "আগামীকাল মাদরাসা খোলা থাকবে। যথাসময়ে উপস্থিত থাকার অনুরোধ করা হচ্ছে।",
-        nursery: [],
+    const defaultNurseryData = [
+        { id: 1, roll: 1, name: "সোহানুর ইসলাম", phone: "01605776704" },
+        { id: 2, roll: 2, name: "মেফতাহুল ফেরদৌস শামিমা", phone: "01867791835" },
+        { id: 3, roll: 3, name: "মোঃ মাসুম বিল্লাহ", phone: "01540775043" },
+        { id: 4, roll: 4, name: "মোঃ রেদওয়ান", phone: "01566023122" },
+        { id: 5, roll: 5, name: "মোছাঃ উম্মে হাবিবা", phone: "01566082105" },
+        { id: 6, roll: 6, name: "মোঃ মাঈন উদ্দিন মাহিন", phone: "01835320015" },
+        { id: 7, roll: 7, name: "মোঃ আবু বকর সিদ্দিক", phone: "01881637394" },
+        { id: 8, roll: 8, name: "সাদিয়া আক্তার", phone: "01850398298" },
+        { id: 9, roll: 9, name: "মোঃ রোহানুল ইসলাম রুহান", phone: "01568498753" },
+        { id: 10, roll: 10, name: "আবু বকর সিদ্দিক", phone: "01557687949" },
+        { id: 11, roll: 11, name: "নুসরাত জাহান নূরী", phone: "01886027355" },
+        { id: 12, roll: 12, name: "ইসরাত জাহান ইভা", phone: "" },
+        { id: 13, roll: 13, name: "মোঃ মিসবাহ মাহমুদ রাফি", phone: "01854359879" },
+        { id: 14, roll: 14, name: "আফসানা মীম", phone: "01865235303" },
+        { id: 15, roll: 15, name: "মোঃ জুবায়ের হোসেন", phone: "01554777138" },
+        { id: 16, roll: 16, name: "মোঃ জিহাদ", phone: "01560003271" },
+        { id: 17, roll: 17, name: "আনিছা তাবাসসুম", phone: "01555001186" },
+        { id: 18, roll: 18, name: "মোঃ আব্দুল্লাহ", phone: "01570218812" },
+        { id: 19, roll: 19, name: "ফারিয়া জাহান মনি", phone: "0186775643" },
+        { id: 20, roll: 20, name: "জান্নাত চৌধুরী ফাতেমা", phone: "" },
+        { id: 21, roll: 21, name: "মোছাঃ খাদিজা আক্তার", phone: "01585878076" },
+        { id: 22, roll: 22, name: "মরিয়ম আক্তার মারিয়া", phone: "01866933239" },
+        { id: 23, roll: 23, name: "মোঃ আব্দুল্লাহ", phone: "01828856520" },
+        { id: 24, roll: 24, name: "মোছাঃ খাদিজা আক্তার", phone: "01585826473" },
+        { id: 25, roll: 25, name: "হুযাইফা", phone: "01585702427" },
+        { id: 26, roll: 26, name: "মোছাঃ জিন্নাত আক্তার", phone: "01869434848" },
+        { id: 27, roll: 27, name: "মোঃ মীর হোসেন", phone: "01855905083" },
+        { id: 28, roll: 28, name: "তাবাচ্ছুম আক্তার মীম", phone: "01577053607" },
+        { id: 29, roll: 29, name: "মোঃ শাহাত হুসাইন", phone: "01538116930" },
+        { id: 30, roll: 30, name: "মোঃ সোলাইমান আহমেদ", phone: "01868063443" },
+        { id: 31, roll: 31, name: "মোঃ আব্দুল্লাহ", phone: "01881639134" },
+        { id: 32, roll: 32, name: "ফারজান করিম ফারাবী", phone: "01820233464" },
+        { id: 33, roll: 33, name: "জান্নাতুল আফরা", phone: "01817727700" }
+    ];
+
+    const defaultTeacherData = [
+        { id: 101, roll: 1, name: "আব্দুল কাদের ওয়াজী", phone: "01886384560" },
+        { id: 102, roll: 2, name: "মোঃ আমিরুল ইসলাম", phone: "01569127874" },
+        { id: 103, roll: 3, name: "মোঃ শরিফুল ইসলাম", phone: "01577147668" },
+        { id: 104, roll: 4, name: "মোঃ ফরহাদ মিয়া", phone: "01609420377" }
+    ];
+
+    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v14')) || {
+        nursery: defaultNurseryData,
         class1: [],
         class2: [],
         class3: [],
-        teachers: []
+        teachers: defaultTeacherData
     };
 
-    // Realtime Firebase Listener
+    // --- REALTIME FIREBASE SYNC ---
     db.collection('school').doc('madrasaData').onSnapshot((doc) => {
         if (doc.exists) {
             schoolData = doc.data();
-            localStorage.setItem('schoolDirectoryData_v17', JSON.stringify(schoolData));
-            document.getElementById('live-notice-text').innerText = schoolData.notice || "কোনো নতুন নোটিশ নেই।";
+            localStorage.setItem('schoolDirectoryData_v14', JSON.stringify(schoolData));
             applyFilters();
             updateStats();
         } else {
             saveData();
         }
+    }, (error) => {
+        console.log("Firebase sync fallback to local:", error);
     });
 
+    // Save Data to both LocalStorage and Firebase Cloud
     function saveData() {
-        localStorage.setItem('schoolDirectoryData_v17', JSON.stringify(schoolData));
+        localStorage.setItem('schoolDirectoryData_v14', JSON.stringify(schoolData));
         updateStats();
         db.collection('school').doc('madrasaData').set(schoolData)
             .catch(err => console.error("Firebase update failed:", err));
     }
 
-    // PROTECTED NOTICE UPDATE WITH PASSWORD
-    function updateNotice() {
-        const pass = prompt("নোটিশ পরিবর্তন করতে ম্যানেজমেন্ট পাসওয়ার্ড দিন:");
-        
-        if (pass === null) return; // Cancelled
-        
-        if (pass === ADMIN_PASSWORD) {
-            const currentNotice = schoolData.notice || "";
-            const newNotice = prompt("নতুন নোটিশ লিখুন:", currentNotice);
-            if (newNotice !== null && newNotice.trim() !== "") {
-                schoolData.notice = newNotice.trim();
-                saveData();
-                alert("নোটিশ সফলভাবে আপডেট করা হয়েছে!");
-            }
-        } else {
-            alert("ভুল পাসওয়ার্ড! শুধুমাত্র অ্যাডমিন বা ম্যানেজমেন্ট নোটিশ পরিবর্তন করতে পারবে।");
-        }
-    }
-
+    // Switch Tab
     function switchClass(tabName) {
         currentClass = tabName;
         document.getElementById('searchInput').value = '';
@@ -682,8 +658,10 @@
         applyFilters();
     }
 
+    // Toggle Phone Filter
     function setPhoneFilter(filterType) {
         currentPhoneFilter = filterType;
+        
         const allBtn = document.getElementById('filter-all-btn');
         const noPhoneBtn = document.getElementById('filter-nophone-btn');
 
@@ -694,9 +672,11 @@
             noPhoneBtn.classList.remove('active');
             allBtn.classList.add('active');
         }
+
         applyFilters();
     }
 
+    // Master Filter Function
     function applyFilters() {
         const query = document.getElementById('searchInput').value.toLowerCase().trim();
         let list = schoolData[currentClass] || [];
@@ -720,6 +700,7 @@
         renderList(list);
     }
 
+    // Add Entry
     function addEntry() {
         const roll = document.getElementById('stdRoll').value.trim();
         const name = document.getElementById('stdName').value.trim();
@@ -749,6 +730,7 @@
         document.getElementById('phoneNum').value = '';
     }
 
+    // Rename Entry
     function renameEntry(id) {
         const item = schoolData[currentClass].find(entry => entry.id === id);
         if (item) {
@@ -760,8 +742,10 @@
         }
     }
 
+    // Update Phone
     function updatePhone(id) {
         const phoneInput = document.getElementById(`phone-${id}`).value.trim();
+
         const item = schoolData[currentClass].find(entry => entry.id === id);
         if (item) {
             item.phone = phoneInput;
@@ -770,6 +754,7 @@
         }
     }
 
+    // Delete Entry
     function deleteEntry(id) {
         const label = currentClass === 'teachers' ? 'শিক্ষককে' : 'শিক্ষার্থীকে';
         if (confirm(`আপনি কি এই ${label} মুছে ফেলতে চান?`)) {
@@ -778,6 +763,7 @@
         }
     }
 
+    // Send Group SMS
     function sendGroupSMS() {
         const list = schoolData[currentClass] || [];
         const phoneNumbers = list
@@ -792,9 +778,11 @@
 
         const defaultMsg = `রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা (${classNameMap[currentClass]}) এর জরুরি বিজ্ঞপ্তি: `;
         const message = encodeURIComponent(defaultMsg);
+        
         window.location.href = `sms:${phoneNumbers}?body=${message}`;
     }
 
+    // Update Quick Stats
     function updateStats() {
         let totalStd = 0;
         let totalTea = schoolData.teachers ? schoolData.teachers.length : 0;
@@ -817,6 +805,7 @@
         document.getElementById('stat-total-phone').innerText = totalPhone;
     }
 
+    // Render List View
     function renderList(list) {
         const container = document.getElementById('student-list-container');
         container.innerHTML = '';
@@ -860,9 +849,10 @@
         });
     }
 
+    // Initial Load
     applyFilters();
     updateStats();
 </script>
 
 </body>
-    </html>
+</html>
