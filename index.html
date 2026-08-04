@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</title>
+    <title>রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</title>
     
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
@@ -149,7 +149,7 @@
             border-radius: 15px;
         }
 
-        /* Tab Buttons */
+        /* Main Tabs */
         .tabs {
             display: flex;
             gap: 6px;
@@ -173,6 +173,13 @@
         .tab-btn.active {
             background: #007bff;
             color: #fff;
+        }
+        .tab-btn.teacher-tab {
+            background: #6c757d;
+            color: #fff;
+        }
+        .tab-btn.teacher-tab.active {
+            background: #28a745;
         }
         .tab-btn.result-tab {
             background: #ff9800;
@@ -220,7 +227,6 @@
             padding: 20px;
             border-radius: 8px;
             margin-top: 15px;
-            position: relative;
         }
         .marksheet-header {
             text-align: center;
@@ -310,6 +316,18 @@
             font-weight: bold;
             font-size: 13px;
         }
+        .call-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: bold;
+        }
 
         @media print {
             body * {
@@ -342,7 +360,7 @@
 
     <!-- Header with Institution Details -->
     <div class="institution-header">
-        <h1>🕌 রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</h1>
+        <h1>🕌 রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা ও এতিমখানা</h1>
         <p>📍 বটতলী বাজার সংলগ্ন, দীঘিনালা, খাগড়াছড়ি পার্বত্য জেলা</p>
     </div>
 
@@ -367,28 +385,35 @@
 
     <!-- SECTION 1: DIRECTORY SECTION -->
     <div id="directory-section">
-        <!-- Class Sub Tabs -->
+        <!-- Class & Teacher Sub Tabs -->
         <div class="tabs">
             <button class="tab-btn active class-sub-btn" onclick="switchClass('nursery')">নার্সারি</button>
             <button class="tab-btn class-sub-btn" onclick="switchClass('class1')">১ম শ্রেণি</button>
             <button class="tab-btn class-sub-btn" onclick="switchClass('class2')">২য় শ্রেণি</button>
             <button class="tab-btn class-sub-btn" onclick="switchClass('class3')">৩য় শ্রেণি</button>
+            <button class="tab-btn teacher-tab class-sub-btn" onclick="switchClass('teachers')">👨‍🏫 শিক্ষকবৃন্দ</button>
         </div>
 
         <!-- Search Input Bar -->
         <div style="margin-bottom: 12px;">
-            <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="নাম বা রোল দিয়ে খুঁজুন..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+            <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="নাম বা রোল/আইডি দিয়ে খুঁজুন..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
         </div>
 
         <!-- Directory Entry Form (Teacher/Admin) -->
         <div class="section-box" id="dir-form-sec" style="display:none;">
             <h4 id="form-title" style="margin-bottom:8px; font-size: 14px;">নতুন শিক্ষার্থী যুক্ত করুন</h4>
             <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input type="number" id="stdRoll" placeholder="রোল" style="width:70px; padding:8px;">
+                <input type="number" id="stdRoll" placeholder="রোল/আইডি" style="width:90px; padding:8px;">
                 <input type="text" id="stdName" placeholder="নাম" style="flex:1; padding:8px;">
                 <input type="tel" id="phoneNum" placeholder="মোবাইল নম্বর" style="flex:1; padding:8px;">
             </div>
             <button onclick="addEntry()" style="width:100%; padding:9px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight:bold;">যুক্ত করুন</button>
+        </div>
+
+        <!-- Title Header -->
+        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; margin-bottom:10px; color:#444;">
+            <span><span id="current-class-label">নার্সারি</span> তালিকা</span>
+            <span id="total-count" style="color:#666;">মোট: ০ জন</span>
         </div>
 
         <!-- Cards List Container -->
@@ -449,6 +474,14 @@
     const ADMIN_PIN   = "577147";
     let currentRole = sessionStorage.getItem('user_role_state') || 'guest';
 
+    const classNameMap = {
+        'nursery': 'নার্সারি',
+        'class1': '১ম শ্রেণি',
+        'class2': '২য় শ্রেণি',
+        'class3': '৩য় শ্রেণি',
+        'teachers': 'শিক্ষকমণ্ডলী'
+    };
+
     // Live Clock System
     function updateLiveClock() {
         const now = new Date();
@@ -480,9 +513,9 @@
     const db = firebase.firestore();
 
     let currentClass = 'nursery';
-    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v19')) || {
+    let schoolData = JSON.parse(localStorage.getItem('schoolDirectoryData_v20')) || {
         notice: "আগামীকাল মাদরাসা খোলা থাকবে।",
-        nursery: [], class1: [], class2: [], class3: [],
+        nursery: [], class1: [], class2: [], class3: [], teachers: [],
         results: {} 
     };
 
@@ -490,8 +523,9 @@
     db.collection('school').doc('madrasaData').onSnapshot((doc) => {
         if (doc.exists) {
             schoolData = doc.data();
+            if(!schoolData.teachers) schoolData.teachers = [];
             if(!schoolData.results) schoolData.results = {};
-            localStorage.setItem('schoolDirectoryData_v19', JSON.stringify(schoolData));
+            localStorage.setItem('schoolDirectoryData_v20', JSON.stringify(schoolData));
             document.getElementById('live-notice-text').innerText = schoolData.notice || "নোটিশ নেই।";
             applyFilters();
             loadStudentsForResult();
@@ -501,7 +535,7 @@
     });
 
     function saveData() {
-        localStorage.setItem('schoolDirectoryData_v19', JSON.stringify(schoolData));
+        localStorage.setItem('schoolDirectoryData_v20', JSON.stringify(schoolData));
         db.collection('school').doc('madrasaData').set(schoolData);
     }
 
@@ -557,12 +591,25 @@
         document.getElementById('directory-section').style.display = (tab === 'directory') ? 'block' : 'none';
         document.getElementById('result-section').style.display = (tab === 'result') ? 'block' : 'none';
         document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        if(event && event.target) event.target.classList.add('active');
         if(tab === 'result') loadStudentsForResult();
     }
 
     function switchClass(cls) {
         currentClass = cls;
+        document.querySelectorAll('.class-sub-btn').forEach(btn => btn.classList.remove('active'));
+        if(event && event.target) event.target.classList.add('active');
+        
+        document.getElementById('current-class-label').innerText = classNameMap[cls];
+        if(cls === 'teachers') {
+            document.getElementById('form-title').innerText = "নতুন শিক্ষক যুক্ত করুন";
+            document.getElementById('stdName').placeholder = "শিক্ষকের নাম";
+            document.getElementById('stdRoll').placeholder = "আইডি (ঐচ্ছিক)";
+        } else {
+            document.getElementById('form-title').innerText = `${classNameMap[cls]} শ্রেণিতে নতুন শিক্ষার্থী যুক্ত করুন`;
+            document.getElementById('stdName').placeholder = "শিক্ষার্থীর নাম";
+            document.getElementById('stdRoll').placeholder = "রোল";
+        }
         applyFilters();
     }
 
@@ -579,21 +626,40 @@
     function renderList(list) {
         const container = document.getElementById('student-list-container');
         container.innerHTML = '';
+        document.getElementById('total-count').innerText = `মোট: ${list.length} জন`;
+
         if(list.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:15px; color:#888;">কোনো ডাটা পাওয়া যায়নি</div>';
+            container.innerHTML = '<div style="text-align:center; padding:15px; color:#888;">কোনো তথ্য পাওয়া যায়নি</div>';
             return;
         }
-        list.forEach((item) => {
+
+        const isTeacherTab = (currentClass === 'teachers');
+
+        list.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'contact-card';
+            
+            const rollDisplay = item.roll || (index + 1);
+            const rollLabel = isTeacherTab ? 'আইডি' : 'রোল';
+
+            let phoneDisplay = '';
+            let callBtn = '';
+
+            if (isTeacherTab) {
+                phoneDisplay = item.phone ? item.phone : 'নম্বর নেই';
+                callBtn = item.phone ? `<a href="tel:${item.phone}" class="call-btn"><i class="fa-solid fa-phone"></i> কল</a>` : '';
+            } else {
+                phoneDisplay = (currentRole !== 'guest') ? (item.phone || 'নম্বর নেই') : '🔒 নম্বর সুরক্ষিত';
+                callBtn = (currentRole !== 'guest' && item.phone) ? `<a href="tel:${item.phone}" class="call-btn"><i class="fa-solid fa-phone"></i> কল</a>` : '';
+            }
+
             card.innerHTML = `
                 <div>
-                    <span class="roll-badge">রোল ${item.roll || '-'}</span>
-                    <strong style="margin-left:5px;">${item.name}</strong>
+                    <span class="roll-badge">${rollLabel} ${rollDisplay}</span>
+                    <strong style="margin-left:5px; font-size:15px;">${item.name}</strong>
+                    <div style="font-size:13px; color:#666; margin-top:4px;">${phoneDisplay}</div>
                 </div>
-                <div style="font-size:13px; color:#666;">
-                    ${currentRole !== 'guest' ? (item.phone || 'নম্বর নেই') : '🔒 সুরক্ষিত'}
-                </div>
+                <div>${callBtn}</div>
             `;
             container.appendChild(card);
         });
@@ -704,12 +770,10 @@
             rowsHtml += `<tr><td>${sub.subject}</td><td>${sub.mark}</td></tr>`;
         });
 
-        const classNameMap = {'nursery':'নার্সারি', 'class1':'১ম শ্রেণি', 'class2':'২য় শ্রেণি', 'class3':'৩য় শ্রেণি'};
-
         display.innerHTML = `
             <div class="marksheet-box" id="printable-marksheet">
                 <div class="marksheet-header">
-                    <h2>রসিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা</h2>
+                    <h2>রশিকনগর মোহাম্মাদিয়া হাফিজিয়া নূরানী মাদ্রাসা</h2>
                     <div class="marksheet-title">পরীক্ষার ফলাফল ও নম্বরপত্র</div>
                 </div>
                 <div class="marksheet-info">
